@@ -18,12 +18,41 @@
 (set-frame-font "Berkeley Mono Trial 14" nil t)
 ;;(load-theme 'doom-tokyo-night :no-confirm)
 
+;; Quality of life
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 ;; Ivy
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1)
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+	 :map ivy-minibuffer-map
+	 ("TAB" . ivy-alt-done)
+	 ("C-l" . ivy-alt-done)
+	 ("C-j" . ivy-next-line)
+	 ("C-k" . ivy-previous-line)
+	 :map ivy-switch-buffer-map
+	 ("C-k" . ivy-previous-line)
+	 ("C-l" . ivy-done)
+	 ("C-d" . ivy-switch-buffer-kill)
+	 :map ivy-reverse-i-search-map
+	 ("C-k" . ivy-previous-line)
+	 ("C-d" . ivy-reverse-i-search-kill))
   :config
-  (setq ivy-format-function '*ivy-format-function-line))
+  (ivy-mode 1))
+;;(use-package ivy-rich
+;;  :init
+;;  (ivy-rich-mode 1)
+;;  :config
+;;  (setq ivy-format-function '*ivy-format-function-line))
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+	 ("C-x b" . counsel-ibuffer)
+	 ("C-x C-f" . counsel-find-file)
+	 :map minibuffer-local-map
+	 ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
 
 ;; Evil
 (setq evil-want-keybinding nil)
@@ -88,7 +117,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(ivy-rich projectile dap-mode lsp-treemacs lsp-ui which-key lsp-mode neotree consult magit evil-collection doom-themes))
+   '(counsel ivy-rich projectile dap-mode lsp-treemacs lsp-ui which-key lsp-mode neotree consult magit evil-collection doom-themes))
  '(warning-suppress-types '((comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
