@@ -15,7 +15,7 @@
 (use-package doom-themes
   :config
   (load-theme 'doom-tokyo-night :no-confirm))
-(set-frame-font "Berkeley Mono Trial 14" nil t)
+(set-frame-font "Hack 14" nil t)
 ;;(load-theme 'doom-tokyo-night :no-confirm)
 
 ;; Quality of life
@@ -91,6 +91,7 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   :hook (csharp-mode . lsp)
+  :hook (c-mode . lsp)
   :config
   (lsp-enable-which-key-integration t))
 (use-package lsp-ui :commands lsp-ui-mode)
