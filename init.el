@@ -92,6 +92,7 @@
   (setq lsp-keymap-prefix "C-c l")
   :hook (csharp-mode . lsp)
   :hook (c-mode . lsp)
+  :hook (go-mode . lsp)
   :config
   (lsp-enable-which-key-integration t))
 (use-package lsp-ui :commands lsp-ui-mode)
@@ -112,13 +113,17 @@
   :init
   (projectile-mode +1))
 
+;; Flycheck
+(use-package flycheck)
+(global-flycheck-mode)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(counsel ivy-rich projectile dap-mode lsp-treemacs lsp-ui which-key lsp-mode neotree consult magit evil-collection doom-themes))
+   '(flycheck go-mode rust-mode evil-mu4e sly counsel ivy-rich projectile dap-mode lsp-treemacs lsp-ui which-key lsp-mode neotree consult magit evil-collection doom-themes))
  '(warning-suppress-types '((comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
