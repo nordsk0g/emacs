@@ -13,9 +13,21 @@
 (global-display-line-numbers-mode)
 
 ;; Theme
-(use-package doom-themes
-  :config
-  (load-theme 'doom-tokyo-night :no-confirm))
+(use-package ef-themes)
+(use-package modus-themes)
+
+;; Add all your customizations prior to loading the themes
+(setq modus-themes-italic-constructs t
+      modus-themes-bold-constructs nil)
+
+;; Load the theme of your choice.
+(load-theme 'ef-elea-dark :no-confirm)
+;;(load-theme 'modus-vivendi :no-confirm)
+
+(define-key global-map (kbd "<f5>") #'modus-themes-toggle)
+;;(use-package doom-themes
+;;  :config
+;;  (load-theme 'doom-tokyo-night :no-confirm))
 (set-frame-font "Hack 14" nil t)
 ;;(load-theme 'doom-tokyo-night :no-confirm)
 
@@ -78,6 +90,12 @@
 
 ;; Org mode
 (use-package org)
+(global-set-key (kbd "C-c l") #'org-store-link)
+(global-set-key (kbd "C-c a") #'org-agenda)
+(global-set-key (kbd "C-c c") #'org-capture)
+
+(setq org-agenda-files (list "~/org/work.org"
+			     "~/org/personal.org"))
 
 ;; Org-roam
 (use-package org-roam
@@ -130,6 +148,7 @@
   :hook (dired-mode . treemacs-icons-dired-enable-once)
   :ensure t)
 
+;; Slime
 ;; LSP
 (use-package lsp-mode
   :commands (lsp)
@@ -143,6 +162,7 @@
   :hook (csharp-mode . lsp)
   :hook (c-mode . lsp)
   :hook (go-mode . lsp)
+  :hook (zig-mode . lsp)
   :config
   (lsp-enable-which-key-integration t)
   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
@@ -227,13 +247,24 @@
 (use-package flycheck :ensure)
 (global-flycheck-mode)
 
+;; AUCTeX
+(use-package auctex
+  :ensure t)
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(setq-default TeX-master nil)
+;'(org-format-latex-options
+;   '(:foreground default :background default :scale 5.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
+; 		 ("begin" "$1" "$" "$$" "\\(" "\\[")))
+(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.8))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(rustic company yasnippet treemacs-icons-dired treemacs-magit treemacs-projectile treemacs-evil org-roam-ui org-roam flycheck go-mode rust-mode evil-mu4e counsel ivy-rich projectile dap-mode lsp-treemacs lsp-ui which-key lsp-mode consult magit evil-collection doom-themes))
+   '(zig-mode zone-select auctex sly ef-themes modus-themes rustic company yasnippet treemacs-icons-dired treemacs-magit treemacs-projectile treemacs-evil org-roam-ui org-roam flycheck go-mode rust-mode evil-mu4e counsel ivy-rich projectile dap-mode lsp-treemacs lsp-ui which-key lsp-mode consult magit evil-collection doom-themes))
  '(warning-suppress-types '((comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
