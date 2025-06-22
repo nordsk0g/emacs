@@ -1,8 +1,9 @@
-;; Package manager
+; Package manager
 (require 'package)
 (add-to-list 'package-archives
 	     '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
+(add-to-list 'exec-path "/home/steven/.cargo/bin")
 
 ;; General styling
 (setq inhibit-splash-screen t)
@@ -11,6 +12,9 @@
 (setq visible-bell 1)
 (setq display-line-numbers-type 'relative)
 (global-display-line-numbers-mode)
+
+;; Scratch message
+(setq initial-scratch-message "; Docs: C-h f [function] C-h v [variable] C-h k [keybinding] C-h m [mode] M-x ielm [REPL]")
 
 ;; Theme
 (use-package ef-themes)
@@ -28,11 +32,32 @@
 ;;(use-package doom-themes
 ;;  :config
 ;;  (load-theme 'doom-tokyo-night :no-confirm))
-(set-frame-font "Hack 14" nil t)
+(setq initial-frame-alist
+      '((top . 50)
+	(left . 50)
+	(width . 120)
+	(height . 45)
+	(font . "Iosevka Comfy Medium-14")))
+(setq default-frame-alist initial-frame-alist)
+;;(add-to-list 'default-frame-alist '(font . "Iosevka Comfy Medium-14"))
+;;(set-frame-font "Iosevka Comfy Medium" nil t)
+;;(set-frame-font "TX-02 SemiLight 14" nil t)
 ;;(load-theme 'doom-tokyo-night :no-confirm)
 
 ;; Quality of life
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+;; vterm
+(use-package vterm
+  :ensure t
+  :hook (vterm-mode . my/disable-evil-in-vterm))
+
+(defun my/disable-evil-in-vterm ()
+  (evil-local-mode -1))
+
+;(add-hook 'vterm-mode-hook (lambda () (setq evil-default-state 'emacs)))
+;(add-hook 'vterm-mode-hook #'evil-emacs-state)
+;(evil-set-initial-state 'vterm-mode 'emacs)
 
 ;; Ivy
 (use-package ivy
@@ -67,6 +92,10 @@
   :config
   (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
 
+;; Disable evil in vterm
+(with-eval-after-load 'evil-collection
+  (setq evil-collection-mode-list
+        (remove 'vterm evil-collection-mode-list)))
 ;; Evil
 (setq evil-want-keybinding nil)
 ;;(require 'evil)
@@ -148,10 +177,18 @@
   :hook (dired-mode . treemacs-icons-dired-enable-once)
   :ensure t)
 
-;; Slime
+;; Sly
+;; (defun my/disable-evil-in-sly ()
+;;   "Disable evil mode in SLY buffers."
+;;   (evil-local-mode -1))
+(use-package sly)
+;; (add-hook 'sly-mode-hook #'my/disable-evil-in-sly)
+;; (add-hook 'sly-mrepl-mode-hook #'my/disable-evil-in-sly)
+
 ;; LSP
 (use-package lsp-mode
-  :commands (lsp)
+  :ensure
+  :commands lsp
   :custom
   (lsp-rust-analyzer-cargo-watch-command "clippy")
   (lsp-eldoc-render-all t)
@@ -159,19 +196,20 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   (setq lsp-inlay-hint-enable t)
+  ;(setq lsp-rust-analyzer-server-path "~/.local/bin/rust-analyzer/")
   :hook (csharp-mode . lsp)
   :hook (c-mode . lsp)
   :hook (go-mode . lsp)
   :hook (zig-mode . lsp)
   :config
   (lsp-enable-which-key-integration t)
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+  (add-hook 'rust-mode-hook 'lsp-deferred))
 (use-package lsp-ui :commands lsp-ui-mode)
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 (use-package dap-mode)
 (use-package dap-netcore)
 (add-hook 'after-init-hook 'global-company-mode)
-(add-hook 'rust-mode-hook 'lsp-deferred)
 
 (use-package lsp-ui
   :ensure
@@ -180,6 +218,10 @@
   (lsp-ui-peek-always-show t)
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-doc-enable nil))
+
+;; Rust
+(add-hook 'rust-mode-hook
+          (lambda () (setq indent-tabs-mode nil)))
 
 (use-package company
   :ensure
@@ -199,36 +241,6 @@
   (add-hook 'prog-mode-hook 'yas-minor-mode)
   (add-hook 'text-mode-hook 'yas-minor-mode))
 
-;; Rust configuration
-(use-package rustic
-  :ensure
-  :bind (:map rustic-mode-map
-              ("M-j" . lsp-ui-imenu)
-              ("M-?" . lsp-find-references)
-              ("C-c C-c l" . flycheck-list-errors)
-              ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c r" . lsp-rename)
-              ("C-c C-c q" . lsp-workspace-restart)
-              ("C-c C-c Q" . lsp-workspace-shutdown)
-              ("C-c C-c s" . lsp-rust-analyzer-status))
-  :config
-  ;; uncomment for less flashiness
-  ;; (setq lsp-eldoc-hook nil)
-  ;; (setq lsp-enable-symbol-highlighting nil)
-  ;; (setq lsp-signature-auto-activate nil)
-
-  ;; comment to disable rustfmt on save
-  (setq rustic-format-on-save t)
-  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
-
-(defun rk/rustic-mode-hook ()
-  ;; so that run C-c C-c C-r works without having to confirm, but don't try to
-  ;; save rust buffers that are not file visiting. Once
-  ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
-  ;; no longer be necessary.
-  (when buffer-file-name
-    (setq-local buffer-save-without-query t))
-  (add-hook 'before-save-hook 'lsp-format-buffer nil t))
 
 ;; Which-Key
 (use-package which-key
@@ -264,7 +276,13 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(zig-mode zone-select auctex sly ef-themes modus-themes rustic company yasnippet treemacs-icons-dired treemacs-magit treemacs-projectile treemacs-evil org-roam-ui org-roam flycheck go-mode rust-mode evil-mu4e counsel ivy-rich projectile dap-mode lsp-treemacs lsp-ui which-key lsp-mode consult magit evil-collection doom-themes))
+   '(auctex company consult counsel dap-mode doom-themes ef-themes
+	    evil-collection evil-mu4e flycheck flycheck-rust go-mode
+	    ivy-rich lsp-mode lsp-treemacs lsp-ui magit modus-themes
+	    org-roam org-roam-ui projectile rust-mode sly
+	    treemacs-evil treemacs-icons-dired treemacs-magit
+	    treemacs-projectile vterm which-key yasnippet zig-mode
+	    zone-select))
  '(warning-suppress-types '((comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
