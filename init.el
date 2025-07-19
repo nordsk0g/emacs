@@ -14,7 +14,7 @@
 (global-display-line-numbers-mode)
 
 ;; Scratch message
-(setq initial-scratch-message "; Docs: C-h f [function] C-h v [variable] C-h k [keybinding] C-h m [mode] M-x ielm [REPL]")
+;(setq initial-scratch-message "; Docs: C-h f [function] C-h v [variable] C-h k [keybinding] C-h m [mode] M-x ielm [REPL]")
 
 ;; Theme
 (use-package ef-themes)
@@ -33,10 +33,10 @@
 ;;  :config
 ;;  (load-theme 'doom-tokyo-night :no-confirm))
 (setq initial-frame-alist
-      '((top . 50)
-	(left . 50)
-	(width . 120)
-	(height . 45)
+      '(;(top . 50)
+	;(left . 50)
+	;(width . 120)
+	;(height . 45)
 	(font . "Iosevka Comfy Medium-14")))
 (setq default-frame-alist initial-frame-alist)
 ;;(add-to-list 'default-frame-alist '(font . "Iosevka Comfy Medium-14"))
@@ -49,11 +49,11 @@
 
 ;; vterm
 (use-package vterm
-  :ensure t
-  :hook (vterm-mode . my/disable-evil-in-vterm))
+  :ensure t)
+  ;:hook (vterm-mode . my/disable-evil-in-vterm))
 
-(defun my/disable-evil-in-vterm ()
-  (evil-local-mode -1))
+;(defun my/disable-evil-in-vterm ()
+;  (evil-local-mode -1))
 
 ;(add-hook 'vterm-mode-hook (lambda () (setq evil-default-state 'emacs)))
 ;(add-hook 'vterm-mode-hook #'evil-emacs-state)
@@ -62,7 +62,7 @@
 ;; Ivy
 (use-package ivy
   :diminish
-  :bind (("C-s" . swiper)
+  :bind (("C-M-s" . swiper)
 	 :map ivy-minibuffer-map
 	 ("TAB" . ivy-alt-done)
 	 ("C-l" . ivy-alt-done)
@@ -93,24 +93,24 @@
   (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
 
 ;; Disable evil in vterm
-(with-eval-after-load 'evil-collection
-  (setq evil-collection-mode-list
-        (remove 'vterm evil-collection-mode-list)))
-;; Evil
-(setq evil-want-keybinding nil)
-;;(require 'evil)
-(use-package evil
-  :ensure t
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  :config
-  (evil-mode 1))
-(use-package evil-collection
-  :after evil
-  :ensure t
-  :config
-  (evil-collection-init))
+;(with-eval-after-load 'evil-collection
+;  (setq evil-collection-mode-list
+;        (remove 'vterm evil-collection-mode-list)))
+;;; Evil
+;(setq evil-want-keybinding nil)
+;;;(require 'evil)
+;(use-package evil
+;  :ensure t
+;  :init
+;  (setq evil-want-integration t)
+;  (setq evil-want-keybinding nil)
+;  :config
+;  (evil-mode 1))
+;(use-package evil-collection
+;  :after evil
+;  :ensure t
+;  :config
+;  (evil-collection-init))
 ;;(require 'evil-collection)
 ;;(evil-collection-init)
 
@@ -161,9 +161,9 @@
   (setq treemacs-follow-mode t)
   (setq treemacs-project-follow-mode t))
 
-(use-package treemacs-evil
-  :after (treemacs evil)
-  :ensure t)
+;(use-package treemacs-evil
+;  :after (treemacs evil)
+;  :ensure t)
 
 (use-package treemacs-projectile
   :after (treemacs projectile)
@@ -277,12 +277,11 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    '(auctex company consult counsel dap-mode doom-themes ef-themes
-	    evil-collection evil-mu4e flycheck flycheck-rust go-mode
-	    ivy-rich lsp-mode lsp-treemacs lsp-ui magit modus-themes
-	    org-roam org-roam-ui projectile rust-mode sly
-	    treemacs-evil treemacs-icons-dired treemacs-magit
-	    treemacs-projectile vterm which-key yasnippet zig-mode
-	    zone-select))
+	    flycheck flycheck-rust go-mode ivy-rich lsp-mode
+	    lsp-treemacs lsp-ui magit modus-themes org-roam
+	    org-roam-ui projectile rust-mode sly treemacs-icons-dired
+	    treemacs-magit treemacs-projectile vterm which-key
+	    yasnippet zig-mode zone-select))
  '(warning-suppress-types '((comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
