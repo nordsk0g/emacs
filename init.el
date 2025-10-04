@@ -1,20 +1,45 @@
-; Package manager
+;;; init.el --- Steven's init file
 (require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
+(setopt packages-archives
+	'(("gnu" . "https://elpa.gnu.org/packages/")
+	  ("nongnu" . "https://elpa.nongnu.org/nongnu")
+	  ("melpa" . "https://melpa.org/packages/")))
+
+(when (< emacs-major-version 24)
+  ;; Backwards compatibility
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+
 (add-to-list 'exec-path "/home/steven/.cargo/bin")
 
 ;; General styling
-(setq inhibit-splash-screen t)
+(setq inhibit-splash-screen nil)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (setq visible-bell 1)
-(setq display-line-numbers-type 'relative)
+(setq-default display-line-numbers-type 'relative)
 (global-display-line-numbers-mode)
 
-;; Scratch message
-;(setq initial-scratch-message "; Docs: C-h f [function] C-h v [variable] C-h k [keybinding] C-h m [mode] M-x ielm [REPL]")
+;; auto-saving
+(setq auto-save-default 1)
+(setq auto-save-interval 20)
+(setq auto-save-visited-mode 1)
+(setq auto-save-visited-interval 1)
+
+;; store back up files
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+  backup-by-copying t    ; Don't delink hardlinks
+  version-control t      ; Use version numbers on backups
+  delete-old-versions t  ; Automatically delete excess backups
+  kept-new-versions 20   ; how many of the newest versions to keep
+  kept-old-versions 5    ; and how many of the old
+  )
 
 ;; Theme
 (use-package ef-themes)
@@ -25,39 +50,17 @@
       modus-themes-bold-constructs nil)
 
 ;; Load the theme of your choice.
-(load-theme 'ef-elea-dark :no-confirm)
-;;(load-theme 'modus-vivendi :no-confirm)
+;;(load-theme 'ef-elea-dark :no-confirm)
+(load-theme 'modus-vivendi :no-confirm)
 
 (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
-;;(use-package doom-themes
-;;  :config
-;;  (load-theme 'doom-tokyo-night :no-confirm))
-(setq initial-frame-alist
-      '(;(top . 50)
-	;(left . 50)
-	;(width . 120)
-	;(height . 45)
-	(font . "Iosevka Comfy Medium-14")))
 (setq default-frame-alist initial-frame-alist)
-;;(add-to-list 'default-frame-alist '(font . "Iosevka Comfy Medium-14"))
-;;(set-frame-font "Iosevka Comfy Medium" nil t)
-;;(set-frame-font "TX-02 SemiLight 14" nil t)
-;;(load-theme 'doom-tokyo-night :no-confirm)
+(set-frame-font "Aporetic Sans Mono 14" nil t)
 
 ;; Quality of life
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; vterm
-(use-package vterm
-  :ensure t)
-  ;:hook (vterm-mode . my/disable-evil-in-vterm))
-
-;(defun my/disable-evil-in-vterm ()
-;  (evil-local-mode -1))
-
-;(add-hook 'vterm-mode-hook (lambda () (setq evil-default-state 'emacs)))
-;(add-hook 'vterm-mode-hook #'evil-emacs-state)
-;(evil-set-initial-state 'vterm-mode 'emacs)
 
 ;; Ivy
 (use-package ivy
@@ -77,11 +80,6 @@
 	 ("C-d" . ivy-reverse-i-search-kill))
   :config
   (ivy-mode 1))
-;;(use-package ivy-rich
-;;  :init
-;;  (ivy-rich-mode 1)
-;;  :config
-;;  (setq ivy-format-function '*ivy-format-function-line))
 
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
@@ -91,28 +89,6 @@
 	 ("C-r" . 'counsel-minibuffer-history))
   :config
   (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
-
-;; Disable evil in vterm
-;(with-eval-after-load 'evil-collection
-;  (setq evil-collection-mode-list
-;        (remove 'vterm evil-collection-mode-list)))
-;;; Evil
-;(setq evil-want-keybinding nil)
-;;;(require 'evil)
-;(use-package evil
-;  :ensure t
-;  :init
-;  (setq evil-want-integration t)
-;  (setq evil-want-keybinding nil)
-;  :config
-;  (evil-mode 1))
-;(use-package evil-collection
-;  :after evil
-;  :ensure t
-;  :config
-;  (evil-collection-init))
-;;(require 'evil-collection)
-;;(evil-collection-init)
 
 ;; Magit
 (use-package magit)
@@ -161,10 +137,6 @@
   (setq treemacs-follow-mode t)
   (setq treemacs-project-follow-mode t))
 
-;(use-package treemacs-evil
-;  :after (treemacs evil)
-;  :ensure t)
-
 (use-package treemacs-projectile
   :after (treemacs projectile)
   :ensure t)
@@ -178,12 +150,7 @@
   :ensure t)
 
 ;; Sly
-;; (defun my/disable-evil-in-sly ()
-;;   "Disable evil mode in SLY buffers."
-;;   (evil-local-mode -1))
 (use-package sly)
-;; (add-hook 'sly-mode-hook #'my/disable-evil-in-sly)
-;; (add-hook 'sly-mrepl-mode-hook #'my/disable-evil-in-sly)
 
 ;; LSP
 (use-package lsp-mode
@@ -196,19 +163,27 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   (setq lsp-inlay-hint-enable t)
-  ;(setq lsp-rust-analyzer-server-path "~/.local/bin/rust-analyzer/")
   :hook (csharp-mode . lsp)
   :hook (c-mode . lsp)
+  :hook (c++-mode . lsp)
   :hook (go-mode . lsp)
   :hook (zig-mode . lsp)
   :config
-  (lsp-enable-which-key-integration t)
+  (setq-default lsp-enable-which-key-integration t)
   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   (add-hook 'rust-mode-hook 'lsp-deferred))
 (use-package lsp-ui :commands lsp-ui-mode)
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
-(use-package dap-mode)
-(use-package dap-netcore)
+; java
+(require 'lsp-java)
+(add-hook 'java-mode-hook #'lsp)
+(require 'lsp-java-boot)
+
+;; to enable the lenses
+(add-hook 'lsp-mode-hook #'lsp-lens-mode)
+(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
+
+;
 (add-hook 'after-init-hook 'global-company-mode)
 
 (use-package lsp-ui
@@ -235,12 +210,13 @@
 	("M->" . company-select-last)))
 
 (use-package yasnippet
-  :ensure
-  :config
-  (yas-reload-all)
-  (add-hook 'prog-mode-hook 'yas-minor-mode)
-  (add-hook 'text-mode-hook 'yas-minor-mode))
-
+  :ensure t
+  :hook ((text-mode
+	  prog-mode
+	  conf-mode
+	  snippet-mode) . yas-minor-mode-on)
+  :init
+  (setq yas-snippet-dirs "~/.emacs.d/snippets/"))
 
 ;; Which-Key
 (use-package which-key
@@ -265,9 +241,6 @@
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
-;'(org-format-latex-options
-;   '(:foreground default :background default :scale 5.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
-; 		 ("begin" "$1" "$" "$$" "\\(" "\\[")))
 (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.8))
 
 (custom-set-variables
@@ -276,12 +249,12 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(auctex company consult counsel dap-mode doom-themes ef-themes
-	    flycheck flycheck-rust go-mode ivy-rich lsp-mode
-	    lsp-treemacs lsp-ui magit modus-themes org-roam
-	    org-roam-ui projectile rust-mode sly treemacs-icons-dired
-	    treemacs-magit treemacs-projectile vterm which-key
-	    yasnippet zig-mode zone-select))
+   '(annalist auctex company consult counsel dap-mode dap-netcore
+	      doom-themes ef-themes flycheck-rust go-mode ivy-rich
+	      lsp-java lsp-ui modus-themes org-roam-ui rust-mode sly
+	      treemacs-evil treemacs-icons-dired treemacs-magit
+	      treemacs-projectile vterm which-key xterm-color
+	      yasnippet zig-mode zone-select))
  '(warning-suppress-types '((comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
