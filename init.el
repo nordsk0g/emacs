@@ -1,4 +1,8 @@
-;;; init.el --- Steven's init file
+;;; init.el --- Steven's init file:
+;;; Commentary:
+
+;;; Code:
+;;; -*- lexical-binding: t -*-
 (require 'package)
 (setopt packages-archives
 	'(("gnu" . "https://elpa.gnu.org/packages/")
@@ -25,6 +29,7 @@
 (setq visible-bell 1)
 (setq-default display-line-numbers-type 'relative)
 (global-display-line-numbers-mode)
+(auto-fill-mode t)
 
 ;; auto-saving
 (setq auto-save-default 1)
@@ -60,7 +65,8 @@
 ;; Quality of life
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-;; vterm
+;; rainbow-mode
+(use-package rainbow-mode)
 
 ;; Ivy
 (use-package ivy
@@ -162,7 +168,7 @@
   (lsp-idle-delay 0.6)
   :init
   (setq lsp-keymap-prefix "C-c l")
-  (setq lsp-inlay-hint-enable t)
+  (setq-default lsp-ui-sideline-enable nil)
   :hook (csharp-mode . lsp)
   :hook (c-mode . lsp)
   :hook (c++-mode . lsp)
@@ -170,9 +176,7 @@
   :hook (zig-mode . lsp)
   :config
   (setq-default lsp-enable-which-key-integration t)
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode)
   (add-hook 'rust-mode-hook 'lsp-deferred))
-(use-package lsp-ui :commands lsp-ui-mode)
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 ; java
 (require 'lsp-java)
@@ -243,18 +247,18 @@
 (setq-default TeX-master nil)
 (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.8))
 
+(unless (package-installed-p 'inf-cljure)
+  (package-refresh-contents)
+  (package-install 'inf-clojure))
+
+(add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(annalist auctex company consult counsel dap-mode dap-netcore
-	      doom-themes ef-themes flycheck-rust go-mode ivy-rich
-	      lsp-java lsp-ui modus-themes org-roam-ui rust-mode sly
-	      treemacs-evil treemacs-icons-dired treemacs-magit
-	      treemacs-projectile vterm which-key xterm-color
-	      yasnippet zig-mode zone-select))
+ '(package-selected-packages nil)
  '(warning-suppress-types '((comp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
