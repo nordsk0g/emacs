@@ -1,13 +1,23 @@
-;;; init.el --- Steven's init file:
+;;; init.el --- Steven's init file: -*- lexical-binding: t -*-
 ;;; Commentary:
 
 ;;; Code:
-;;; -*- lexical-binding: t -*-
+(defun src/display-startup-time ()
+  "Log start up time for Emacs."
+  (message
+   "Emacs loaded in %s with %d garbage collections."
+   (format
+    "%.2f seconds"
+    (float-time
+     (time-subtract after-init-time before-init-time)))
+   gcs-done))
+
+(add-hook 'emacs-startup-hook #'src/display-startup-time)
+
 (require 'package)
-(setopt packages-archives
-	'(("gnu" . "https://elpa.gnu.org/packages/")
-	  ("nongnu" . "https://elpa.nongnu.org/nongnu")
-	  ("melpa" . "https://melpa.org/packages/")))
+(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
+(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu"))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 
 (when (< emacs-major-version 24)
   ;; Backwards compatibility
@@ -16,6 +26,8 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+
+(package-initialize)
 
 (require 'use-package)
 (setq use-package-always-ensure t)
@@ -28,11 +40,13 @@
 (menu-bar-mode -1)
 (setq visible-bell 1)
 (setq-default display-line-numbers-type 'relative)
-(global-display-line-numbers-mode)
-(auto-fill-mode t)
+'(global-display-line-numbers-mode t)
+'(column-number-mode t)
+(setq-default auto-fill-function 'do-auto-fill)
+(setq-default fill-column 80)
 
 ;; auto-saving
-(setq auto-save-default 1)
+(setq auto-save-default nil)
 (setq auto-save-interval 20)
 (setq auto-save-visited-mode 1)
 (setq auto-save-visited-interval 1)
@@ -47,23 +61,36 @@
   )
 
 ;; Theme
-(use-package ef-themes)
-(use-package modus-themes)
+(use-package modus-themes
+  :ensure t
+  :demand t)
+
+(use-package ef-themes
+  :ensure t
+  :demand t)
 
 ;; Add all your customizations prior to loading the themes
 (setq modus-themes-italic-constructs t
       modus-themes-bold-constructs nil)
 
 ;; Load the theme of your choice.
-;;(load-theme 'ef-elea-dark :no-confirm)
 (load-theme 'modus-vivendi :no-confirm)
 
 (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
-(setq default-frame-alist initial-frame-alist)
-(set-frame-font "Aporetic Sans Mono 14" nil t)
+(setq default-frame-alist '((font . "Aporetic Sans Mono 14")))
+;;(set-frame-font "Aporetic Sans Mono 14" nil t)
 
 ;; Quality of life
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;;(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(global-set-key [remap list-buffers] 'ibuffer)
+
+;; Window management
+(global-set-key (kbd "M-o") 'other-window)
+(windmove-default-keybindings)
+
+;; Elemental movement
+'(global-subword-mode t)
+'(global-superword-mode t)
 
 ;; rainbow-mode
 (use-package rainbow-mode)
@@ -120,6 +147,8 @@
 	 :map org-mode-map
 	 ("C-M-i"   . completion-at-point)))
 
+(use-package annotate)
+
 ;; Org-roam immediate insert
 (defun org-roam-node-insert-immediate (arg &rest args)
   (interactive "P")
@@ -131,32 +160,42 @@
 ;; Consult
 (use-package consult)
 
-;; Treemacs
-(use-package treemacs
-  :ensure t
-  :bind
-  (:map global-map
-	([f8] . treemacs)
-	("C-<f8>" . treemacs-select-window))
-  :config
-  (setq treemacs-is-never-other-window t)
-  (setq treemacs-follow-mode t)
-  (setq treemacs-project-follow-mode t))
+					; PROGRAMMING
 
-(use-package treemacs-projectile
-  :after (treemacs projectile)
-  :ensure t)
+;; clang-format
 
-(use-package treemacs-magit
-  :after (treemacs magit)
-  :ensure t)
-
-(use-package treemacs-icons-dired
-  :hook (dired-mode . treemacs-icons-dired-enable-once)
-  :ensure t)
+(use-package clang-format
+  :init
+  (setq clang-format-fallback-style "gnu"))
 
 ;; Sly
-(use-package sly)
+(use-package sly
+  :init
+  (setq inferior-lisp-program "/usr/sbin/sbcl"))
+
+;; Treesitter
+(setq treesit-language-source-alist
+      '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+        (c . ("https://github.com/tree-sitter/tree-sitter-c"))
+        (c++ . ("https://github.com/tree-sitter/tree-sitter-cpp"))
+        (c-sharp
+	 . ("https://github.com/tree-sitter/tree-sitter-c-sharp"))
+	(commonlisp
+	 . ("https://github.com/tree-sitter-grammars/tree-sitter-commonlisp"))
+	(bash
+	 . ("https://github.com/tree-sitter/tree-sitter-bash"))
+	(elisp
+	 . ("https://github.com/tree-sitter/tree-sitter-elisp"))))
+
+(setq major-mode-remap-alist
+      '((c-mode . c-ts-mode)
+	(c++-mode . c++-ts-mode)
+	(csharp-mode . csharp-ts-mode)
+	(rust-mode . rust-ts-mode)
+	(bash-mode . bash-ts-mode)
+	))
+
+(setq lsp-clients-clangd-executable "/usr/bin/clangd")
 
 ;; LSP
 (use-package lsp-mode
@@ -169,25 +208,16 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   (setq-default lsp-ui-sideline-enable nil)
-  :hook (csharp-mode . lsp)
-  :hook (c-mode . lsp)
-  :hook (c++-mode . lsp)
-  :hook (go-mode . lsp)
-  :hook (zig-mode . lsp)
+  :hook (csharp-ts-mode . lsp)
+  :hook (c-ts-mode . lsp)
+  :hook (c++-ts-mode . lsp)
   :config
   (setq-default lsp-enable-which-key-integration t)
-  (add-hook 'rust-mode-hook 'lsp-deferred))
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
-; java
-(require 'lsp-java)
-(add-hook 'java-mode-hook #'lsp)
-(require 'lsp-java-boot)
+  (add-hook 'rust-ts-mode-hook 'lsp-deferred))
 
 ;; to enable the lenses
 (add-hook 'lsp-mode-hook #'lsp-lens-mode)
-(add-hook 'java-mode-hook #'lsp-java-boot-lens-mode)
 
-;
 (add-hook 'after-init-hook 'global-company-mode)
 
 (use-package lsp-ui
@@ -198,8 +228,27 @@
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-doc-enable nil))
 
+;; Compile hooks
+(add-hook 'c-ts-mode-hook
+	  (lambda ()
+	    (setq-local compile-command
+			(format "gcc -Og -o \"%s\" %s"
+			(file-name-sans-extension buffer-file-name)
+			(file-name-nondirectory buffer-file-name)))))
+(add-hook 'c++-ts-mode-hook
+	  (lambda ()
+	    (setq-local compile-command
+			(format "g++ -std=c++23 -fmodules-ts %s -o %s"
+			(file-name-sans-extension buffer-file-name)
+			(file-name-nondirectory buffer-file-name)))))
+
+(add-hook 'csharp-ts-mode-hook
+	  (lambda ()
+	    (setq-local compile-command
+			(format "dotnet run"))))
+
 ;; Rust
-(add-hook 'rust-mode-hook
+(add-hook 'rust-ts-mode-hook
           (lambda () (setq indent-tabs-mode nil)))
 
 (use-package company
@@ -241,31 +290,20 @@
 
 ;; AUCTeX
 (use-package auctex
-  :ensure t)
-(setq TeX-auto-save t)
-(setq TeX-parse-self t)
+  :ensure t
+  :defer t
+  :hook (LaTeX-mode . (lambda ()
+			(push (list 'output-pdf "Okular")
+			      TeX-view-program-selection))))
+(setq-default TeX-auto-save t)
+(setq-default TeX-parse-self t)
 (setq-default TeX-master nil)
 (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.8))
 
-(unless (package-installed-p 'inf-cljure)
-  (package-refresh-contents)
-  (package-install 'inf-clojure))
+(setq custom-file "~/.emacs.d/custom.el")
 
-(add-hook 'clojure-mode-hook #'inf-clojure-minor-mode)
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages nil)
- '(warning-suppress-types '((comp))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
 (provide 'init)
 ;;; init.el ends here
 
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
