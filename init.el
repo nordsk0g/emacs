@@ -32,7 +32,7 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
-(add-to-list 'exec-path "/home/steven/.cargo/bin")
+(add-to-list 'exec-path "~/.cargo/bin")
 
 ;; General styling
 (setq inhibit-splash-screen nil)
@@ -44,6 +44,7 @@
 '(column-number-mode t)
 (setq-default auto-fill-function 'do-auto-fill)
 (setq-default fill-column 80)
+(setq-default show-trailing-whitespace t)
 
 ;; auto-saving
 (setq auto-save-default nil)
@@ -195,7 +196,7 @@
 	(bash-mode . bash-ts-mode)
 	))
 
-(setq lsp-clients-clangd-executable "/usr/bin/clangd")
+(setq-default lsp-clients-clangd-executable "/usr/bin/clangd")
 
 ;; LSP
 (use-package lsp-mode
