@@ -35,16 +35,18 @@
 (add-to-list 'exec-path "~/.cargo/bin")
 
 ;; General styling
-(setq inhibit-splash-screen nil)
+(setq-default inhibit-splash-screen t
+	      visible-bell 1
+	      display-line-numbers-type 'relative
+	      show-trailing-whitespace t)
+
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-(setq visible-bell 1)
-(setq-default display-line-numbers-type 'relative)
+
 '(global-display-line-numbers-mode t)
 '(column-number-mode t)
-(setq-default auto-fill-function 'do-auto-fill)
-(setq-default fill-column 80)
-(setq-default show-trailing-whitespace t)
+;(setq-default auto-fill-function 'do-auto-fill)
+;(setq-default fill-column 80)
 
 ;; auto-saving
 (setq auto-save-default nil)
@@ -66,9 +68,9 @@
   :ensure t
   :demand t)
 
-(use-package ef-themes
-  :ensure t
-  :demand t)
+;;(use-package ef-themes
+;;  :ensure t
+;;  :demand t)
 
 ;; Add all your customizations prior to loading the themes
 (setq modus-themes-italic-constructs t
@@ -79,11 +81,15 @@
 
 (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
 (setq default-frame-alist '((font . "Aporetic Sans Mono 14")))
-;;(set-frame-font "Aporetic Sans Mono 14" nil t)
 
 ;; Quality of life
-;;(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key [remap list-buffers] 'ibuffer)
+(global-set-key (kbd "C-,") 'duplicate-line)
+
+;; ido
+(ido-mode 1)
+(ido-everywhere 1)
+
 
 ;; Window management
 (global-set-key (kbd "M-o") 'other-window)
@@ -161,7 +167,7 @@
 ;; Consult
 (use-package consult)
 
-					; PROGRAMMING
+; Programming
 
 ;; clang-format
 
@@ -263,15 +269,6 @@
 	("M-<" . company-select-first)
 	("M->" . company-select-last)))
 
-(use-package yasnippet
-  :ensure t
-  :hook ((text-mode
-	  prog-mode
-	  conf-mode
-	  snippet-mode) . yas-minor-mode-on)
-  :init
-  (setq yas-snippet-dirs "~/.emacs.d/snippets/"))
-
 ;; Which-Key
 (use-package which-key
   :config
@@ -305,6 +302,3 @@
 
 (provide 'init)
 ;;; init.el ends here
-
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
